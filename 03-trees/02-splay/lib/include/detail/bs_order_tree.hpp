@@ -1,0 +1,379 @@
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * <tsimmerman.ss@phystech.edu>, wrote this file.  As long as you
+ * retain this notice you can do whatever you want with this stuff. If we meet
+ * some day, and you think this stuff is worth it, you can buy us a beer in
+ * return.
+ * ----------------------------------------------------------------------------
+ */
+
+#pragma once
+
+#include <cassert>
+#include <cstddef>
+#include <iostream>
+#include <iterator>
+#include <tuple>
+#include <type_traits>
+
+namespace throttle {
+namespace detail {
+
+struct bst_order_node_base {
+  using base_ptr = bst_order_node_base *;
+  using const_base_ptr = const bst_order_node_base *;
+  using size_type = std::size_t;
+
+  size_type m_size;
+  base_ptr m_left;
+  base_ptr m_right;
+  base_ptr m_parent;
+
+  static size_type size(base_ptr p_x) noexcept {
+    return (p_x ? p_x->m_size : 0);
+  }
+
+  base_ptr minimum() noexcept {
+    base_ptr curr = this;
+    while (curr->m_left)
+      curr = curr->m_left;
+    return curr;
+  }
+
+  base_ptr maximum() noexcept {
+    base_ptr curr = this;
+    while (curr->m_right)
+      curr = curr->m_right;
+    return curr;
+  }
+
+  base_ptr successor() noexcept {
+    if (m_right) return (m_right)->minimum();
+    return nullptr;
+  }
+
+  base_ptr predecessor() noexcept {
+    if (m_left) return (m_left)->maximum();
+    return nullptr;
+  }
+
+  base_ptr inorder_successor() noexcept {
+    base_ptr curr = this;
+
+    if (curr->m_right) {
+      curr = curr->successor();
+    }
+
+    else {
+      base_ptr parent = curr->m_parent;
+      while (parent && curr->is_right_child()) {
+        curr = parent;
+        parent = parent->m_parent;
+      }
+      curr = parent;
+    }
+
+    return curr;
+  }
+
+  base_ptr inorder_predecessor() noexcept {
+    base_ptr curr = this;
+
+    if (curr->m_left) {
+      curr = curr->predecessor();
+    }
+
+    else {
+      base_ptr parent = curr->m_parent;
+      while (parent && curr->is_left_child()) {
+        curr = parent;
+        parent = parent->m_parent;
+      }
+      curr = parent;
+    }
+
+    return curr;
+  }
+
+  base_ptr get_sibling() noexcept {
+    return (is_left_child() ? m_parent->m_right : m_parent->m_left);
+  }
+
+  base_ptr get_uncle() noexcept {
+    return (m_parent->is_right_child() ? m_parent->m_parent->m_left : m_parent->m_parent->m_right);
+  }
+
+  bool is_left_child() const noexcept {
+    return (this == m_parent->m_left);
+  }
+
+  bool is_right_child() const noexcept {
+    return (this == m_parent->m_right);
+  }
+
+  bool is_linear() const noexcept {
+    return ((is_left_child() && m_parent->is_left_child()) || (is_right_child() && m_parent->is_right_child()));
+  }
+};
+
+template <typename t_value_type> struct bst_order_node : public bst_order_node_base {
+  using node_type = bst_order_node<t_value_type>;
+  using node_ptr = node_type *;
+  using const_node_ptr = const node_type *;
+
+  t_value_type m_value;
+
+  bst_order_node(const t_value_type &p_key) : bst_order_node_base{1, nullptr, nullptr, nullptr}, m_value{p_key} {}
+};
+
+class bs_order_tree_impl {
+protected:
+  using base_ptr = bst_order_node_base::base_ptr;
+  using const_base_ptr = bst_order_node_base::const_base_ptr;
+  using link_type = bst_order_node_base;
+  using size_type = bst_order_node_base::size_type;
+
+protected:
+  base_ptr m_root;
+  // Note that rotations don't change min and max values, only erase and insert does, thus pointers don't change as
+  // well.
+  base_ptr m_leftmost;
+  base_ptr m_rightmost;
+
+  void rotate_left(base_ptr) noexcept;
+  void rotate_right(base_ptr) noexcept;
+  void rotate_to_parent(base_ptr) noexcept;
+
+  bs_order_tree_impl() : m_root{}, m_leftmost{}, m_rightmost{} {}
+};
+
+template <typename t_value_type, typename t_comp, typename t_key_type = t_value_type>
+class bs_order_tree : public bs_order_tree_impl {
+protected:
+  using node_type = bst_order_node<t_value_type>;
+  using node_ptr = typename node_type::node_ptr;
+  using const_node_ptr = typename node_type::const_node_ptr;
+  using size_type = typename node_type::size_type;
+
+  using self = bs_order_tree<t_value_type, t_comp>;
+
+public:
+  class iterator {
+    base_ptr m_curr;
+    self *m_tree;
+
+  public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type = std::make_signed_t<size_type>;
+    using value_type = t_value_type;
+    using pointer = t_value_type *;
+    using reference = t_value_type &;
+
+    iterator() : m_curr{}, m_tree{} {}
+    iterator(base_ptr p_node, self *p_tree) : m_curr{p_node}, m_tree{p_tree} {}
+
+    reference operator*() const {
+      return static_cast<node_ptr>(m_curr)->m_value;
+    }
+
+    pointer operator->() {
+      return &(static_cast<node_ptr>(m_curr)->m_value);
+    }
+
+    iterator &operator++() {
+      m_curr = m_curr->inorder_successor();
+      return *this;
+    }
+
+    iterator operator++(int) {
+      iterator temp{*this};
+      ++(*this);
+      return temp;
+    }
+
+    iterator &operator--() {
+      m_curr = (m_curr ? m_curr->inorder_predecessor() : m_tree->m_rightmost);
+      return *this;
+    }
+
+    iterator operator--(int) {
+      iterator temp{*this};
+      --(*this);
+      return temp;
+    }
+
+    bool operator==(const iterator &p_rhs) const {
+      return (m_curr == p_rhs.m_curr);
+    }
+
+    bool operator!=(const iterator &p_rhs) const {
+      return (m_curr != p_rhs.m_curr);
+    }
+  };
+
+public:
+  iterator begin() {
+    return iterator{m_leftmost, this};
+  }
+
+  iterator end() {
+    return iterator{nullptr, this};
+  }
+
+  bool empty() const noexcept {
+    return !m_root;
+  }
+
+  size_type size() const noexcept {
+    return (m_root ? m_root->m_size : 0);
+  }
+
+  void clear() noexcept {
+    base_ptr curr = m_root;
+    while (curr) {
+      if (curr->m_left)
+        curr = curr->m_left;
+      else if (curr->m_right)
+        curr = curr->m_right;
+
+      else {
+        base_ptr parent = curr->m_parent;
+        if (parent) {
+          if (curr->is_left_child())
+            parent->m_left = nullptr;
+          else
+            parent->m_right = nullptr;
+        }
+        delete static_cast<node_ptr>(curr);
+        curr = parent;
+      }
+    }
+    m_root = nullptr;
+  }
+
+protected:
+  // clang-format off
+  template <typename F> std::tuple<node_ptr, node_ptr, bool> traverse_bs(node_ptr p_r, const t_key_type &p_k, F p_f) {
+    if (empty()) {
+      return std::make_tuple(nullptr, nullptr, false);
+    }
+
+    node_ptr prev = nullptr, curr = p_r;
+    bool is_less_than_key{};
+
+    while (curr && (curr->m_value != p_k)) {
+      is_less_than_key = t_comp{}(curr->m_value, p_k);
+      p_f(*curr);
+      prev = curr;
+      if (is_less_than_key) {
+        curr = static_cast<node_ptr>(curr->m_right);
+      } else {
+        curr = static_cast<node_ptr>(curr->m_left);
+      }
+    }
+
+    return std::make_tuple(curr, prev, is_less_than_key);
+  }
+
+  template <typename F>
+  std::tuple<const_node_ptr, const_node_ptr, bool> traverse_bs(const_node_ptr p_r, const t_key_type &p_k, F p_f) const {
+    if (empty()) {
+      return std::make_tuple(nullptr, nullptr, false);
+    }
+
+    const_node_ptr prev = nullptr, curr = p_r;
+    bool is_less_than_key{};
+
+    while (curr && (curr->m_value != p_k)) {
+      is_less_than_key = t_comp{}(curr->m_value, p_k);
+      p_f(*curr);
+      prev = curr;
+      if (is_less_than_key) {
+        curr = static_cast<node_ptr>(curr->m_right);
+      } else {
+        curr = static_cast<node_ptr>(curr->m_left);
+      }
+    }
+
+    return std::make_tuple(curr, prev, is_less_than_key);
+  }
+  // clang-format on
+
+  std::pair<node_ptr, node_ptr> bst_lookup(const t_key_type &p_key) {
+    auto [found, prev, is_prev_less] = traverse_bs(static_cast<node_ptr>(m_root), p_key, [](node_type &) {});
+    return {found, prev};
+  }
+
+  std::pair<const_node_ptr, const_node_ptr> bst_lookup(const t_key_type &p_key) const {
+    auto [found, prev, is_prev_less] = traverse_bs(static_cast<node_ptr>(m_root), p_key, [](const node_type &) {});
+    return {found, prev};
+  }
+
+  std::pair<node_ptr, node_ptr> bst_insert(const t_value_type &p_key) {
+    node_ptr to_insert = new node_type{p_key};
+
+    if (empty()) {
+      m_root = m_leftmost = m_rightmost = to_insert;
+      return {to_insert, nullptr};
+    }
+
+    auto [found, prev, is_prev_less] =
+        traverse_bs(static_cast<node_ptr>(m_root), p_key, [](node_type &p_node) { p_node.m_size++; });
+
+    if (found) {
+      traverse_bs(static_cast<node_ptr>(m_root), p_key, [](node_type &p_node) { p_node.m_size--; });
+      delete to_insert;
+      return {nullptr, prev}; // Double insert
+    }
+
+    to_insert->m_parent = prev;
+    if (is_prev_less) {
+      prev->m_right = to_insert;
+    } else {
+      prev->m_left = to_insert;
+    }
+
+    if (t_comp{}(p_key, static_cast<node_ptr>(m_leftmost)->m_value)) {
+      m_leftmost = to_insert;
+    } else if (t_comp{}(static_cast<node_ptr>(m_rightmost)->m_value, p_key)) {
+      m_rightmost = to_insert;
+    }
+
+    return {to_insert, prev};
+  }
+
+  bs_order_tree() : bs_order_tree_impl{} {}
+
+  ~bs_order_tree() {
+    clear();
+  }
+
+  bs_order_tree(const self &p_other) {}
+
+  bs_order_tree(self &&p_other) {
+    std::swap(m_root, p_other.m_root);
+    std::swap(m_leftmost, p_other.m_leftmost);
+    std::swap(m_rightmost, p_other.m_rightmost);
+  }
+
+  self &operator=(const self &p_other) {
+    if (this != &p_other) {
+      self temp{p_other};
+      *this = std::move(p_other);
+    }
+    return *this;
+  }
+
+  self &operator=(self &&p_other) {
+    if (this != &p_other) {
+      std::swap(m_root, p_other.m_root);
+      std::swap(m_leftmost, p_other.m_leftmost);
+      std::swap(m_rightmost, p_other.m_rightmost);
+    }
+    return *this;
+  }
+};
+
+} // namespace detail
+} // namespace throttle
