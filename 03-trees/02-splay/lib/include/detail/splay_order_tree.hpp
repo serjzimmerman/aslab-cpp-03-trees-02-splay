@@ -188,6 +188,29 @@ public:
 
     while (curr) {
       prev = curr;
+      bool is_key_less = t_comp{}(p_key, static_cast<node_ptr>(curr)->m_value);
+      if (is_key_less) {
+        bound = curr;
+        curr = curr->m_left;
+      } else {
+        curr = curr->m_right;
+      }
+    }
+
+    if (!bound) {
+      if (prev) splay_to_root(prev);
+      return this->end();
+    }
+
+    splay_to_root(bound);
+    return iterator{bound, this};
+  }
+
+  iterator lower_bound(const t_key_type &p_key) {
+    base_ptr curr = this->m_root, prev = nullptr, bound = nullptr;
+
+    while (curr) {
+      prev = curr;
       bool is_curr_less = t_comp{}(static_cast<node_ptr>(curr)->m_value, p_key);
       if (is_curr_less) {
         curr = curr->m_right;
@@ -204,6 +227,10 @@ public:
 
     splay_to_root(bound);
     return iterator{bound, this};
+  }
+
+  iterator upper_bound(const t_key_type &p_key) {
+    return closest_right(p_key);
   }
 
   iterator find(const t_key_type &p_key) {

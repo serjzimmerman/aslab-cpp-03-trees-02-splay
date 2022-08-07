@@ -132,6 +132,14 @@ public:
     return iterator{m_tree_impl.closest_right(p_key)};
   }
 
+  iterator lower_bound(const key_type &p_key) {
+    return iterator{m_tree_impl.lower_bound(p_key)};
+  }
+
+  iterator upper_bound(const key_type &p_key) {
+    return iterator{m_tree_impl.upper_bound(p_key)};
+  }
+
   iterator find(const key_type &p_key) {
     return iterator{m_tree_impl.find(p_key)};
   }

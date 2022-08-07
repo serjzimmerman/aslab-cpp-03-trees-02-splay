@@ -1,11 +1,11 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <functional>
 #include <gtest/gtest.h>
+#include <numeric>
 #include <set>
 #include <string>
-#include <algorithm>
-#include <numeric>
 
 #define private public
 #define protected public
@@ -23,7 +23,6 @@ using namespace throttle::detail;
 namespace {
 using base_node_ptr = bst_order_node_base *;
 using base_node = bst_order_node_base;
-
 
 bool validate_size_helper(base_node_ptr p_base) {
   if (!p_base) {
@@ -43,14 +42,14 @@ bool validate_size_helper(base_node_ptr p_base) {
 
 TEST(test_rb_tree_private, test_1) {
   splay_order_tree<int, std::less<int>, int> t;
- 
+
   EXPECT_NO_THROW(for (int i = 0; i < 256000; i++) { t.insert(i); });
   EXPECT_NO_THROW(for (int i = 0; i < 100000; i++) { t.erase(i); });
   EXPECT_EQ(t.size(), 256000 - 100000);
   EXPECT_EQ(validate_size_helper(t.m_root), true);
 
   size_t count = 0;
-  for (const auto v: t) {
+  for (const auto v : t) {
     count++;
   }
 
@@ -62,7 +61,9 @@ TEST(test_rb_tree_private, test_2) {
 
   EXPECT_NO_THROW(for (int i = 0; i < 65536; i++) {
     int temp = std::rand();
-    if (!t.contains(temp)) { t.insert(temp); }
+    if (!t.contains(temp)) {
+      t.insert(temp);
+    }
   });
 
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
@@ -114,7 +115,7 @@ TEST(test_rb_tree_private, test_5) {
     t.insert(i);
   }
 
-  auto sum = std::count_if(t.begin(), t.end(), [](int i){return i < 1000;});
+  auto sum = std::count_if(t.begin(), t.end(), [](int i) { return i < 1000; });
   EXPECT_EQ(sum, 999);
 }
 
@@ -175,9 +176,42 @@ TEST(test_rb_tree_private, test_8) {
 
   EXPECT_EQ(*t.closest_left(1), 1);
   EXPECT_EQ(*t.closest_left(2), 1);
-  EXPECT_EQ(*t.closest_right(5), 5);
+  EXPECT_EQ(*t.closest_right(5), 10);
   EXPECT_EQ(*t.closest_right(9), 10);
-  EXPECT_EQ(*t.closest_right(276), 276);
+  EXPECT_EQ(t.closest_right(276), t.end());
+
+  std::set<int> s{};
+  std::copy(t.begin(), t.end(), std::inserter(s, s.end()));
+
+  for (const auto v : t) {
+    EXPECT_NE(s.find(v), s.end());
+  }
+
+  EXPECT_EQ(s.size(), t.size());
+}
+
+TEST(test_rb_tree_private, test_9) {
+  throttle::splay_order_set<int> t{};
+  std::set<int> s{};
+  
+  for (int i = 0; i < 262144; i+=2) {
+    t.insert(i);
+    s.insert(i);
+  }
+
+  for (int i = -262144; i < 262144; i++) {
+    auto upper_1 = t.upper_bound(i);
+    auto upper_2 = s.upper_bound(i);
+    ASSERT_FALSE((upper_1 == t.end() && upper_2 != s.end()) || (upper_1 != t.end() && upper_2 == s.end()));
+    EXPECT_TRUE((upper_1 == t.end() && upper_2 == s.end()) || *upper_1 == *upper_2);
+  }
+
+  for (int i = -262144; i < 262144; i++) {
+    auto lower_1 = t.lower_bound(i);
+    auto lower_2 = s.lower_bound(i);
+    ASSERT_FALSE((lower_1 == t.end() && lower_2 != s.end()) || (lower_1 != t.end() && lower_2 == s.end()));
+    EXPECT_TRUE((lower_1 == t.end() && lower_2 == s.end()) || *lower_1 == *lower_2);
+  }
 }
 
 int main(int argc, char *argv[]) {
