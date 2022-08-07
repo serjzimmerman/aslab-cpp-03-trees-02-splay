@@ -21,8 +21,10 @@ class splay_order_tree : public bs_order_tree<t_value_type, t_comp, t_key_type> 
 private:
   using base_tree = bs_order_tree<t_value_type, t_comp, t_key_type>;
   using typename base_tree::base_ptr;
+  using typename base_tree::const_base_ptr;
   using typename base_tree::link_type;
   using typename base_tree::node_ptr;
+  using typename base_tree::const_node_ptr;
 
   using self = splay_order_tree<t_value_type, t_comp, t_key_type>;
 
@@ -250,9 +252,8 @@ public:
 
   splay_order_tree(const self &p_other) : base_tree{} {
     self temp{};
-    for (const auto &v : p_other) {
-      temp.insert(v);
-    }
+    this->traverse_postorder(static_cast<const_node_ptr>(p_other.m_root),
+                       [&](const_base_ptr p_n) { temp.insert(static_cast<const_node_ptr>(p_n)->m_value); });
     *this = std::move(temp);
   }
 

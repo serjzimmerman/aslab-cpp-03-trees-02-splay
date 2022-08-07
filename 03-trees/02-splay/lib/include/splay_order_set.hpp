@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <initializer_list>
+#include <iostream>
 
 #include "detail/splay_order_tree.hpp"
 
@@ -163,5 +164,16 @@ public:
   bool contains(const key_type &p_key) {
     return (find(p_key) != end());
   }
+
+  void dump(std::ostream &p_ostream) const {
+    m_tree_impl.dump(p_ostream);
+  }
 };
+
+template <typename T, typename t_comp>
+std::ostream &operator<<(std::ostream &p_ostream, splay_order_set<T, t_comp> &p_set) {
+  p_set.dump(p_ostream);
+  return p_ostream;
+}
+
 } // namespace throttle

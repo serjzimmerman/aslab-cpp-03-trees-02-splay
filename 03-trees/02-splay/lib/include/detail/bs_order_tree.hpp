@@ -259,6 +259,31 @@ public:
     m_root = nullptr;
   }
 
+  void dump(std::ostream &p_ostream) const {
+    struct dumper {
+      size_type m_curr_index = 0;
+      void dump_helper(base_ptr p_root, std::ostream &p_ostream) {
+        size_type curr_index = m_curr_index;
+
+        if (!p_root) {
+          p_ostream << "\tnode_" << m_curr_index++ << " [label = \"NIL:0\"];\n";
+          return;
+        }
+
+        p_ostream << "\tnode_" << m_curr_index++ << " [label = \"" << static_cast<node_ptr>(p_root)->m_value << ":" << p_root->m_size << "\"];\n";
+        p_ostream << "\tnode_" << curr_index << " -> node_" << curr_index + 1 << ";\n";
+        dump_helper(p_root->m_left, p_ostream);
+
+        p_ostream << "\tnode_" << curr_index << " -> node_" << m_curr_index << ";\n";
+        dump_helper(p_root->m_right, p_ostream);
+      }
+    };
+    
+    p_ostream << "digraph BST {\n";
+    dumper{}.dump_helper(m_root, p_ostream);
+    p_ostream << "}";
+  }
+
 protected:
   // clang-format off
   template <typename F> std::tuple<node_ptr, node_ptr, bool> traverse_bs(node_ptr p_r, const t_key_type &p_k, F p_f) {
@@ -304,6 +329,78 @@ protected:
     }
 
     return std::make_tuple(curr, prev, is_less_than_key);
+  }
+
+  template <typename F> void traverse_postorder(base_ptr p_r, F p_f) {
+    base_ptr prev{};
+
+    while (p_r) {
+      base_ptr parent{p_r->m_parent}, left{p_r->m_left}, right{p_r->m_right};
+
+      if (prev == parent) {
+        prev = p_r;
+        if (left) {
+          p_r = left;
+        } else if (right) {
+          p_r = right;
+        } else {
+          p_f(p_r);
+          p_r = parent;
+        }
+      }
+
+      else if (prev == left) {
+        prev = p_r;
+        if (right) {
+          p_r = right;
+        } else {
+          p_f(p_r);
+          p_r = parent;
+        }
+      }
+
+      else {
+        prev = p_r;
+        p_f(p_r);
+        p_r = parent;
+      }
+    }
+  }
+
+  template <typename F> void traverse_postorder(const_base_ptr p_r, F p_f) const {
+    const_base_ptr prev{};
+
+    while (p_r) {
+      const_base_ptr parent{p_r->m_parent}, left{p_r->m_left}, right{p_r->m_right};
+
+      if (prev == parent) {
+        prev = p_r;
+        if (left) {
+          p_r = left;
+        } else if (right) {
+          p_r = right;
+        } else {
+          p_f(p_r);
+          p_r = parent;
+        }
+      }
+
+      else if (prev == left) {
+        prev = p_r;
+        if (right) {
+          p_r = right;
+        } else {
+          p_f(p_r);
+          p_r = parent;
+        }
+      }
+
+      else {
+        prev = p_r;
+        p_f(p_r);
+        p_r = parent;
+      }
+    }
   }
   // clang-format on
 
