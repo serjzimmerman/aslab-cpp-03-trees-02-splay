@@ -47,7 +47,7 @@ template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set
 #endif
 
 std::pair<std::vector<int>, std::vector<std::pair<int, int>>> read_input() {
-  int n;
+  int n = 0;
   if (!(std::cin >> n)) {
     std::abort();
   }
@@ -56,21 +56,21 @@ std::pair<std::vector<int>, std::vector<std::pair<int, int>>> read_input() {
   i_vec.reserve(n);
 
   for (int i = 0; i < n; ++i) {
-    int temp;
+    int temp = 0;
     if (!(std::cin >> temp)) {
       std::abort();
     }
     i_vec.push_back(temp);
   }
 
-  int m;
+  int m = 0;
   if (!(std::cin >> m)) {
     std::abort();
   }
   std::vector<std::pair<int, int>> q_vec{};
   q_vec.reserve(m);
   for (int i = 0; i < m; ++i) {
-    int temp1, temp2;
+    int temp1 = 0, temp2 = 0;
     if ((!(std::cin >> temp1 >> temp2)) || temp1 >= temp2) {
       std::abort();
     }

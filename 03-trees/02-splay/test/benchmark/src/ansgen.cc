@@ -13,7 +13,7 @@ template <typename T> int set_range_query(const std::set<T> &p_set, T p_first, T
 }
 
 int main() {
-  int n;
+  int n = 0;
   if (!(std::cin >> n)) {
     std::abort();
   }
@@ -21,20 +21,20 @@ int main() {
   std::set<int> s{};
 
   for (int i = 0; i < n; ++i) {
-    int temp;
+    int temp = 0;
     if (!(std::cin >> temp)) {
       std::abort();
     }
     s.insert(temp);
   }
 
-  int m;
+  int m = 0;
   if (!(std::cin >> m)) {
     std::abort();
   }
 
   for (int i = 0; i < m; ++i) {
-    int temp1, temp2;
+    int temp1 = 0, temp2 = 0;
     if ((!(std::cin >> temp1 >> temp2)) || temp1 >= temp2) {
       std::abort();
     }

@@ -26,7 +26,7 @@ using base_node = bst_order_node_base;
 
 bool validate_size_helper(base_node_ptr p_base) {
   if (!p_base) {
-    return {true};
+    return true;
   }
 
   if (base_node::size(p_base) != base_node::size(p_base->m_left) + base_node::size(p_base->m_right) + 1) {
@@ -40,23 +40,23 @@ bool validate_size_helper(base_node_ptr p_base) {
 }
 } // namespace
 
-TEST(test_rb_tree_private, test_1) {
+TEST(splay_order_test, test_1) {
   splay_order_tree<int, std::less<int>, int> t;
 
   EXPECT_NO_THROW(for (int i = 0; i < 256000; i++) { t.insert(i); });
   EXPECT_NO_THROW(for (int i = 0; i < 100000; i++) { t.erase(i); });
-  EXPECT_EQ(t.size(), 256000 - 100000);
+  EXPECT_EQ(t.size(), 156000);
   EXPECT_EQ(validate_size_helper(t.m_root), true);
 
   size_t count = 0;
-  for (const auto v : t) {
+  for (const auto &v : t) {
     count++;
   }
 
-  EXPECT_EQ(count, 256000 - 100000);
+  EXPECT_EQ(count, 156000);
 }
 
-TEST(test_rb_tree_private, test_2) {
+TEST(splay_order_test, test_2) {
   throttle::splay_order_set<int> t{};
 
   EXPECT_NO_THROW(for (int i = 0; i < 65536; i++) {
@@ -69,7 +69,7 @@ TEST(test_rb_tree_private, test_2) {
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
 }
 
-TEST(test_rb_tree_private, test_3) {
+TEST(splay_order_test, test_3) {
   throttle::splay_order_set<int> t{};
   for (int i = 0; i < 1024; i++) {
     t.insert(i);
@@ -83,21 +83,18 @@ TEST(test_rb_tree_private, test_3) {
 
   t.erase(666);
   ASSERT_FALSE(t.contains(666));
-
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
   ASSERT_THROW(t.erase(666), std::out_of_range);
-
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
 }
 
-TEST(test_rb_tree_private, test_4) {
+TEST(splay_order_test, test_4) {
   throttle::splay_order_set<int> t{};
   for (int i = 1; i < 131072; i++) {
     t.insert(i);
   }
 
   ASSERT_EQ(*t.select_rank(1), 1);
-
   for (int i = 1; i < 131072; i++) {
     ASSERT_EQ(*t.select_rank(i), i);
   }
@@ -105,11 +102,10 @@ TEST(test_rb_tree_private, test_4) {
   for (int i = 1; i < 4096; i++) {
     t.erase(i);
   }
-
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
 }
 
-TEST(test_rb_tree_private, test_5) {
+TEST(splay_order_test, test_5) {
   throttle::splay_order_set<int> t{};
   for (int i = 1; i < 131072; i++) {
     t.insert(i);
@@ -119,7 +115,7 @@ TEST(test_rb_tree_private, test_5) {
   EXPECT_EQ(sum, 999);
 }
 
-TEST(test_rb_tree_private, test_6) {
+TEST(splay_order_test, test_6) {
   throttle::splay_order_set<int> t{};
 
   t.insert(1);
@@ -136,11 +132,10 @@ TEST(test_rb_tree_private, test_6) {
   ASSERT_EQ(*t.select_rank(8), 276);
   ASSERT_EQ(*t.select_rank(5), 14);
   ASSERT_EQ(*t.select_rank(7), 21);
-
   ASSERT_EQ(t.select_rank(200), t.end());
 }
 
-TEST(test_rb_tree_private, test_7) {
+TEST(splay_order_test, test_7) {
   throttle::splay_order_set<int> t{};
 
   t.insert(1);
@@ -162,7 +157,7 @@ TEST(test_rb_tree_private, test_7) {
   ASSERT_EQ(t.get_rank_of(276), 8);
 }
 
-TEST(test_rb_tree_private, test_8) {
+TEST(splay_order_test, test_8) {
   throttle::splay_order_set<int> t{};
 
   t.insert(1);
@@ -190,11 +185,11 @@ TEST(test_rb_tree_private, test_8) {
   EXPECT_EQ(s.size(), t.size());
 }
 
-TEST(test_rb_tree_private, test_9) {
+TEST(splay_order_test, test_9) {
   throttle::splay_order_set<int> t{};
   std::set<int> s{};
-  
-  for (int i = 0; i < 262144; i+=2) {
+
+  for (int i = 0; i < 262144; i += 2) {
     t.insert(i);
     s.insert(i);
   }
@@ -214,15 +209,40 @@ TEST(test_rb_tree_private, test_9) {
   }
 }
 
-TEST(test_rb_tree_private, test_10) {
+TEST(splay_order_test, test_10) {
   throttle::splay_order_set<int> t{};
-  
+
   for (int i = 0; i < 262144; i++) {
     int temp = rand();
     if (!t.contains(temp)) t.insert(temp);
   }
 
   ASSERT_TRUE(std::is_sorted(t.begin(), t.end()));
+
+  t.erase(*t.max());
+  t.erase(*t.min());
+
+  ASSERT_TRUE(std::is_sorted(t.begin(), t.end()));
+  EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
+  auto it1 = t.min(), next = it1;
+  for (int i = 0; i < 1000; ++i) {
+    next = std::next(it1);
+    t.erase(*it1++);
+    EXPECT_EQ(next, t.min());
+  }
+
+  auto it2 = t.max(), prev = it2;
+  for (int i = 0; i < 1000; ++i) {
+    prev = std::prev(it2);
+    t.erase(*it2--);
+    EXPECT_EQ(prev, t.max());
+  }
+
+  for (int i = 0; i < 1000; ++i) {
+    t.erase(*t.select_rank(rand() % t.size()));
+  }
+
+  EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
 }
 
 int main(int argc, char *argv[]) {

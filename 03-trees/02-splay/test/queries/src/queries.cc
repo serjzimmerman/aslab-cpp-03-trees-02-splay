@@ -20,8 +20,8 @@ int main() {
 
   bool valid = true;
   while (valid) {
-    char query_type;
-    int key;
+    char query_type = 0;
+    int key = 0;
 
     if (!(std::cin >> query_type >> key)) { break; }
 

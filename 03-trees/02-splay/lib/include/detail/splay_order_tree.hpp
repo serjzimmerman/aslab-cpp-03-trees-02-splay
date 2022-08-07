@@ -68,7 +68,7 @@ protected:
 
     if (this->size() == 1) {
       this->m_root = this->m_leftmost = this->m_rightmost = nullptr;
-      delete to_erase;
+      delete static_cast<node_ptr>(to_erase);
       return;
     }
 
@@ -90,7 +90,7 @@ protected:
       join(to_erase->m_left, to_erase->m_right);
     }
 
-    delete to_erase;
+    delete static_cast<node_ptr>(to_erase);
   }
 
 public:
