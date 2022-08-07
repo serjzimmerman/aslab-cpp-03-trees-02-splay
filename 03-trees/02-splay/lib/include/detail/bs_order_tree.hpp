@@ -124,7 +124,9 @@ template <typename t_value_type> struct bst_order_node : public bst_order_node_b
 
   t_value_type m_value;
 
-  bst_order_node(const t_value_type &p_key) : bst_order_node_base{1, nullptr, nullptr, nullptr}, m_value{p_key} {}
+  bst_order_node() : bst_order_node_base{}, m_value{} {}
+  bst_order_node(const t_value_type &p_key, size_type p_size = 1)
+      : bst_order_node_base{p_size, nullptr, nullptr, nullptr}, m_value{p_key} {}
 };
 
 class bs_order_tree_impl {
@@ -160,25 +162,30 @@ protected:
 
 public:
   class iterator {
-    base_ptr m_curr;
-    self *m_tree;
+    const self *m_tree;
 
   public:
+    base_ptr m_curr;
+
     using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = std::make_signed_t<size_type>;
+    using difference_type = ptrdiff_t;
     using value_type = t_value_type;
     using pointer = t_value_type *;
     using reference = t_value_type &;
 
-    iterator() : m_curr{}, m_tree{} {}
-    iterator(base_ptr p_node, self *p_tree) : m_curr{p_node}, m_tree{p_tree} {}
+    iterator() : m_tree{}, m_curr{} {}
+    iterator(base_ptr p_node, const self *p_tree) : m_tree{p_tree}, m_curr{p_node} {}
+
+    pointer get() {
+      return &(static_cast<node_ptr>(m_curr)->m_value);
+    }
 
     reference operator*() const {
       return static_cast<node_ptr>(m_curr)->m_value;
     }
 
     pointer operator->() {
-      return &(static_cast<node_ptr>(m_curr)->m_value);
+      return get();
     }
 
     iterator &operator++() {
@@ -213,11 +220,11 @@ public:
   };
 
 public:
-  iterator begin() {
+  iterator begin() const {
     return iterator{m_leftmost, this};
   }
 
-  iterator end() {
+  iterator end() const {
     return iterator{nullptr, this};
   }
 
@@ -349,23 +356,16 @@ protected:
     clear();
   }
 
-  bs_order_tree(const self &p_other) {}
+  bs_order_tree(const self &p_other) = delete;
+  self &operator=(const self &p_other) = delete;
 
-  bs_order_tree(self &&p_other) {
+  bs_order_tree(self &&p_other) noexcept {
     std::swap(m_root, p_other.m_root);
     std::swap(m_leftmost, p_other.m_leftmost);
     std::swap(m_rightmost, p_other.m_rightmost);
   }
 
-  self &operator=(const self &p_other) {
-    if (this != &p_other) {
-      self temp{p_other};
-      *this = std::move(p_other);
-    }
-    return *this;
-  }
-
-  self &operator=(self &&p_other) {
+  self &operator=(self &&p_other) noexcept {
     if (this != &p_other) {
       std::swap(m_root, p_other.m_root);
       std::swap(m_leftmost, p_other.m_leftmost);

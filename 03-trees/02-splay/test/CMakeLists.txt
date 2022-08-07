@@ -5,5 +5,6 @@ if(Boost_FOUND)
 endif()
 
 add_subdirectory(benchmark)
+add_subdirectory(queries)
 
 enable_testing()

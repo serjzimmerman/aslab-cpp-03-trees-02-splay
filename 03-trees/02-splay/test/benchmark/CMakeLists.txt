@@ -10,6 +10,6 @@ endif()
 
 install(TARGETS benchmark DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
-if(BASH_PROGRAM)
-  add_test(NAME test.benchmark COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/test.sh "$<TARGET_FILE:benchmark>" ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+# if(BASH_PROGRAM)
+#   add_test(NAME test.benchmark COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/test.sh "$<TARGET_FILE:benchmark>" ${CMAKE_CURRENT_SOURCE_DIR})
+# endif()
