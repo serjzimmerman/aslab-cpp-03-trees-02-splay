@@ -214,6 +214,17 @@ TEST(test_rb_tree_private, test_9) {
   }
 }
 
+TEST(test_rb_tree_private, test_10) {
+  throttle::splay_order_set<int> t{};
+  
+  for (int i = 0; i < 262144; i++) {
+    int temp = rand();
+    if (!t.contains(temp)) t.insert(temp);
+  }
+
+  ASSERT_TRUE(std::is_sorted(t.begin(), t.end()));
+}
+
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

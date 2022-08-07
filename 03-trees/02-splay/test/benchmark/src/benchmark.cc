@@ -1,15 +1,18 @@
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 #include <numeric>
 #include <set>
 
+#ifdef BOOST_FOUND__
+#include <boost/program_options.hpp>
+#include <boost/program_options/option.hpp>
+namespace po = boost::program_options;
+#endif
+
 #include "splay_order_set.hpp"
-
-using namespace throttle;
-
-template class throttle::splay_order_set<int>;
 
 template <typename T> int set_range_query(const std::set<T> &p_set, T p_first, T p_second) {
   auto its = p_set.lower_bound(p_first);
@@ -17,8 +20,13 @@ template <typename T> int set_range_query(const std::set<T> &p_set, T p_first, T
   return std::distance(its, ite);
 }
 
+#ifndef LINEAR_COMPLEXITY
 template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set, T p_first, T p_second) {
   if (p_set.empty()) {
+    return 0;
+  }
+
+  if (p_first > *p_set.max()) {
     return 0;
   }
 
@@ -30,51 +38,82 @@ template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set
 
   return rank_right - rank_left;
 }
+#else
+template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set, T p_first, T p_second) {
+  auto its = p_set.lower_bound(p_first);
+  auto ite = p_set.upper_bound(p_second);
+  return std::distance(its, ite);
+}
+#endif
 
-int main() {
+std::pair<std::vector<int>, std::vector<std::pair<int, int>>> read_input() {
   int n;
   if (!(std::cin >> n)) {
-    return 666;
+    std::abort();
   }
 
-  std::vector<int> vec{};
-  vec.reserve(n);
+  std::vector<int> i_vec{};
+  i_vec.reserve(n);
 
   for (int i = 0; i < n; ++i) {
     int temp;
     if (!(std::cin >> temp)) {
-      return 666;
+      std::abort();
     }
-    vec.push_back(temp);
+    i_vec.push_back(temp);
   }
 
   int m;
   if (!(std::cin >> m)) {
-    return 666;
+    std::abort();
   }
-
   std::vector<std::pair<int, int>> q_vec{};
-  std::vector<int> my_set_ans{}, set_ans{};
   q_vec.reserve(m);
-  my_set_ans.reserve(m);
-  set_ans.reserve(m);
-
   for (int i = 0; i < m; ++i) {
     int temp1, temp2;
     if ((!(std::cin >> temp1 >> temp2)) || temp1 >= temp2) {
-      return 666;
+      std::abort();
     }
     q_vec.push_back({temp1, temp2});
   }
 
+  return {i_vec, q_vec};
+}
+
+int main(int argc, char *argv[]) {
+#ifdef BOOST_FOUND__
+  po::options_description desc("Available options");
+  desc.add_options()("help,h", "Print this help message")("compare,c", "Compare with std::set")(
+      "measure,m", "Print perfomance metrics")("hide", "Hide output");
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
+
+  if (vm.count("help")) {
+    std::cout << desc << "\n";
+    return 1;
+  }
+
+  bool compare = vm.count("compare");
+  bool measure = vm.count("measure");
+  bool hide = vm.count("hide");
+#endif
+
+  auto [i_vec, q_vec] = read_input();
+
+  std::vector<int> my_set_ans{}, set_ans{};
+  my_set_ans.reserve(q_vec.size());
+  set_ans.reserve(q_vec.size());
+  
   auto my_set_start = std::chrono::high_resolution_clock::now();
 
-  splay_order_set<int> t{};
-  for (const auto v : vec) {
+  throttle::splay_order_set<int> t{};
+  for (const auto &v : i_vec) {
     t.insert(v);
   }
 
-  for (const auto q : q_vec) {
+  for (const auto &q : q_vec) {
     my_set_ans.push_back(my_set_range_query(t, q.first, q.second));
   }
 
@@ -82,27 +121,46 @@ int main() {
   auto my_set_elapsed = std::chrono::duration<double, std::milli>(my_set_finish - my_set_start);
 
   auto set_start = std::chrono::high_resolution_clock::now();
+  if (compare) {
+    std::set<int> s{};
+    for (const auto &v : i_vec) {
+      s.insert(v);
+    }
 
-  std::set<int> s{};
-  for (const auto v : vec) {
-    s.insert(v);
-  }
-
-  for (const auto q : q_vec) {
-    set_ans.push_back(set_range_query(s, q.first, q.second));
+    for (const auto &q : q_vec) {
+      set_ans.push_back(set_range_query(s, q.first, q.second));
+    }
   }
 
   auto set_finish = std::chrono::high_resolution_clock::now();
-  auto set_elapsed = std::chrono::duration<double, std::milli>(my_set_finish - my_set_start);
+  auto set_elapsed = std::chrono::duration<double, std::milli>(set_finish - set_start);
 
-  if (my_set_ans != set_ans) {
-    return 42;
+#ifdef BOOST_FOUND__
+  if (!hide) {
+    for (const auto &v : my_set_ans) {
+      std::cout << v << " ";
+    }
+    std::cout << "\n";
   }
-
-  for (const auto v: my_set_ans) {
+#else
+  for (const auto &v : my_set_ans) {
     std::cout << v << " ";
   }
   std::cout << "\n";
 
+#endif
+
+#ifdef BOOST_FOUND__
+  if (compare) {
+    std::cout << (my_set_ans == set_ans ? "Outputs match with std::set" : "Outputs do not match with std::set") << "\n";
+  }
+
+  if (measure) {
+    std::cout << "throttle::splay_set took " << my_set_elapsed << " to run\n";
+    if (compare) {
+      std::cout << "std::set took " << set_elapsed << " to run\n";
+    }
+  }
+#endif
   return 0;
 }
