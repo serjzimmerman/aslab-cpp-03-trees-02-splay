@@ -102,8 +102,7 @@ public:
     }
   }
 
-  template <typename t_inp_iter>
-  void insert_range(t_inp_iter p_start, t_inp_iter p_finish) {
+  template <typename t_inp_iter> void insert_range(t_inp_iter p_start, t_inp_iter p_finish) {
     for (t_inp_iter its = p_start, ite = p_finish; its != ite; ++its) {
       insert(*its);
     }
@@ -179,6 +178,8 @@ public:
       if (prev) splay_to_root(prev);
       return this->end();
     }
+
+    splay_to_root(bound);
     return iterator{bound, this};
   }
 
@@ -187,12 +188,12 @@ public:
 
     while (curr) {
       prev = curr;
-      bool is_key_less = t_comp{}(p_key, static_cast<node_ptr>(curr)->m_value);
-      if (is_key_less) {
+      bool is_curr_less = t_comp{}(static_cast<node_ptr>(curr)->m_value, p_key);
+      if (is_curr_less) {
+        curr = curr->m_right;
+      } else {
         bound = curr;
         curr = curr->m_left;
-      } else {
-        curr = curr->m_right;
       }
     }
 
@@ -200,6 +201,8 @@ public:
       if (prev) splay_to_root(prev);
       return this->end();
     }
+
+    splay_to_root(bound);
     return iterator{bound, this};
   }
 

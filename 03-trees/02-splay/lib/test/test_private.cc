@@ -161,6 +161,25 @@ TEST(test_rb_tree_private, test_7) {
   ASSERT_EQ(t.get_rank_of(276), 8);
 }
 
+TEST(test_rb_tree_private, test_8) {
+  throttle::splay_order_set<int> t{};
+
+  t.insert(1);
+  t.insert(5);
+  t.insert(10);
+  t.insert(12);
+  t.insert(14);
+  t.insert(18);
+  t.insert(21);
+  t.insert(276);
+
+  EXPECT_EQ(*t.closest_left(1), 1);
+  EXPECT_EQ(*t.closest_left(2), 1);
+  EXPECT_EQ(*t.closest_right(5), 5);
+  EXPECT_EQ(*t.closest_right(9), 10);
+  EXPECT_EQ(*t.closest_right(276), 276);
+}
+
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
