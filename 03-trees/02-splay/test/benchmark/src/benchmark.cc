@@ -33,8 +33,8 @@ template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set
   auto its = p_set.lower_bound(p_first);
   auto ite = p_set.upper_bound(p_second);
 
-  int rank_left = (its == p_set.end() ? 0 : p_set.get_rank_of(*its));
-  int rank_right = (ite == p_set.end() ? p_set.size() + 1 : p_set.get_rank_of(*ite));
+  int rank_left = (its == p_set.end() ? 0 : p_set.get_rank_of(its));
+  int rank_right = (ite == p_set.end() ? p_set.size() + 1 : p_set.get_rank_of(ite));
 
   return rank_right - rank_left;
 }
@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
   auto my_set_finish = std::chrono::high_resolution_clock::now();
   auto my_set_elapsed = std::chrono::duration<double, std::milli>(my_set_finish - my_set_start);
 
+#ifdef BOOST_FOUND__
   auto set_start = std::chrono::high_resolution_clock::now();
   if (compare) {
     std::set<int> s{};
@@ -135,7 +136,6 @@ int main(int argc, char *argv[]) {
   auto set_finish = std::chrono::high_resolution_clock::now();
   auto set_elapsed = std::chrono::duration<double, std::milli>(set_finish - set_start);
 
-#ifdef BOOST_FOUND__
   if (!hide) {
     for (const auto &v : my_set_ans) {
       std::cout << v << " ";

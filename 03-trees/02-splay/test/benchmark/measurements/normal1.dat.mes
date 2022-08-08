@@ -1,3 +1,3 @@
 Outputs match with std::set
-throttle::splay_set took 10.0429ms to run
-std::set took 83.5509ms to run
+throttle::splay_set took 9.99497ms to run
+std::set took 87.3408ms to run
