@@ -157,14 +157,11 @@ protected:
   using node_ptr = typename node_type::node_ptr;
   using const_node_ptr = typename node_type::const_node_ptr;
   using size_type = typename node_type::size_type;
-
   using self = bs_order_tree<t_value_type, t_comp>;
 
 public:
-  class iterator {
+  struct iterator {
     const self *m_tree;
-
-  public:
     base_ptr m_curr;
 
     using iterator_category = std::bidirectional_iterator_tag;
@@ -219,12 +216,12 @@ public:
     }
   };
 
-public:
-  iterator begin() const {
+  // Helper selectors
+  iterator begin() const noexcept {
     return iterator{m_leftmost, this};
   }
 
-  iterator end() const {
+  iterator end() const noexcept {
     return iterator{nullptr, this};
   }
 
@@ -236,7 +233,8 @@ public:
     return (m_root ? m_root->m_size : 0);
   }
 
-  void clear() noexcept {
+public: // Modifiers
+  void clear() {
     base_ptr curr = m_root;
     while (curr) {
       if (curr->m_left)
@@ -270,7 +268,8 @@ public:
           return;
         }
 
-        p_ostream << "\tnode_" << m_curr_index++ << " [label = \"" << static_cast<node_ptr>(p_root)->m_value << ":" << p_root->m_size << "\"];\n";
+        p_ostream << "\tnode_" << m_curr_index++ << " [label = \"" << static_cast<node_ptr>(p_root)->m_value << ":"
+                  << p_root->m_size << "\"];\n";
         p_ostream << "\tnode_" << curr_index << " -> node_" << curr_index + 1 << ";\n";
         dump_helper(p_root->m_left, p_ostream);
 
@@ -278,7 +277,7 @@ public:
         dump_helper(p_root->m_right, p_ostream);
       }
     };
-    
+
     p_ostream << "digraph BST {\n";
     dumper{}.dump_helper(m_root, p_ostream);
     p_ostream << "}";
@@ -447,12 +446,14 @@ protected:
     return {to_insert, prev};
   }
 
+  // Constructors
   bs_order_tree() : bs_order_tree_impl{} {}
 
   ~bs_order_tree() {
     clear();
   }
 
+  // Copy constructor and assigment should be defined in a derived class.
   bs_order_tree(const self &p_other) = delete;
   self &operator=(const self &p_other) = delete;
 

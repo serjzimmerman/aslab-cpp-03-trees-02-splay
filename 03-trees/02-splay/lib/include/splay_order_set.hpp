@@ -20,13 +20,9 @@ private:
   detail::splay_order_tree<T, t_comp, T> m_tree_impl;
 
 public:
-  using value_type = T;
-  using reference = const T &;
-  using size_type = typename detail::splay_order_tree<T, t_comp, T>::size_type;
-  using key_type = T;
-
   class iterator {
     friend class splay_order_set<T, t_comp>;
+
   private:
     typename detail::splay_order_tree<T, t_comp, T>::iterator m_it_impl;
 
@@ -80,15 +76,15 @@ public:
     }
   };
 
+public:
+  using value_type = T;
+  using reference = const T &;
+  using size_type = typename detail::splay_order_tree<T, t_comp, T>::size_type;
+  using key_type = T;
   using difference_type = typename iterator::difference_type;
   using const_iterator = iterator;
 
-  splay_order_set() : m_tree_impl{} {}
-
-  splay_order_set(std::initializer_list<T> p_list) : splay_order_set{} {
-    m_tree_impl.insert_range(p_list.begin(), p_list.end());
-  }
-
+public: 
   bool empty() const {
     return m_tree_impl.empty();
   }
@@ -97,10 +93,15 @@ public:
     return m_tree_impl.size();
   }
 
+  bool contains(const key_type &p_key) {
+    return (find(p_key) != end());
+  }
+
   void clear() {
     m_tree_impl.clear();
   }
 
+public: // Selectors
   iterator begin() const {
     return iterator{m_tree_impl.begin()};
   }
@@ -118,19 +119,15 @@ public:
   }
 
   iterator min() const {
-    return begin();
+    return (empty() ? end() : begin());
   }
 
   iterator max() const {
-    return std::prev(end());
+    return (empty() ? end() : std::prev(end()));
   }
 
-  iterator closest_left(const key_type &p_key) {
-    return iterator{m_tree_impl.closest_left(p_key)};
-  }
-
-  iterator closest_right(const key_type &p_key) {
-    return iterator{m_tree_impl.closest_right(p_key)};
+  iterator find(const key_type &p_key) {
+    return iterator{m_tree_impl.find(p_key)};
   }
 
   iterator lower_bound(const key_type &p_key) {
@@ -141,10 +138,6 @@ public:
     return iterator{m_tree_impl.upper_bound(p_key)};
   }
 
-  iterator find(const key_type &p_key) {
-    return iterator{m_tree_impl.find(p_key)};
-  }
-
   iterator select_rank(size_type p_rank) {
     return iterator{m_tree_impl.select_rank(p_rank)};
   }
@@ -153,16 +146,44 @@ public:
     return m_tree_impl.get_rank_of(p_key);
   }
 
+  size_type get_rank_of(iterator p_pos) {
+    return m_tree_impl.get_rank_of(p_pos.m_it_impl);
+  }
+
+public:
+  splay_order_set() : m_tree_impl{} {}
+
+  splay_order_set(std::initializer_list<T> p_list) : splay_order_set{} {
+    insert(p_list.begin(), p_list.end());
+  }
+
   void insert(const value_type &p_val) {
     m_tree_impl.insert(p_val);
   }
 
+  template <typename t_input_iter> void insert(t_input_iter p_start, t_input_iter p_finish) {
+    for (t_input_iter its = p_start, ite = p_finish; its != ite; ++its) {
+      insert(*its);
+    }
+  }
+
+  // Erase an element with key "p_key".
   void erase(const key_type &p_key) {
     m_tree_impl.erase(p_key);
   }
 
-  bool contains(const key_type &p_key) {
-    return (find(p_key) != end());
+  // Erase an element pointed to by "p_pos".
+  void erase(iterator p_pos) {
+    m_tree_impl.erase(p_pos.m_it_impl);
+  }
+
+  // Erase all elements in range [p_start, p_finish). Must be a valid range
+  void erase(iterator p_start, iterator p_finish) {
+    for (iterator its = p_start, ite = p_finish; its != ite;) {
+      iterator nextit = std::next(its);
+      erase(its);
+      its = nextit;
+    }
   }
 
   void dump(std::ostream &p_ostream) const {

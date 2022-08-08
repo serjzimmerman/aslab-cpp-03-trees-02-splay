@@ -9,9 +9,9 @@ typename throttle::splay_order_set<T>::size_type get_count_less_than(throttle::s
   if (p_set.empty()) { return 0; }
   auto min = *p_set.min();
   if (p_key <= min) { return 0; }
-  auto bound = *p_set.closest_left(p_key);
+  auto bound = std::prev(p_set.lower_bound(p_key));
   auto rank = p_set.get_rank_of(bound);
-  return (bound == p_key ? rank - 1 : rank);
+  return rank;
 }
 
 int main() {

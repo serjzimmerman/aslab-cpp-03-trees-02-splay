@@ -61,9 +61,7 @@ TEST(splay_order_test, test_2) {
 
   EXPECT_NO_THROW(for (int i = 0; i < 65536; i++) {
     int temp = std::rand();
-    if (!t.contains(temp)) {
-      t.insert(temp);
-    }
+    if (!t.contains(temp)) t.insert(temp);
   });
 
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
@@ -86,6 +84,13 @@ TEST(splay_order_test, test_3) {
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
   ASSERT_THROW(t.erase(666), std::out_of_range);
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
+
+  t.erase(t.find(667), t.end());
+  ASSERT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
+  ASSERT_EQ(*t.max(), 665);
+  t.erase(t.begin(), t.find(100));
+  ASSERT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
+  ASSERT_EQ(*t.min(), 100);
 }
 
 TEST(splay_order_test, test_4) {
@@ -168,12 +173,6 @@ TEST(splay_order_test, test_8) {
   t.insert(18);
   t.insert(21);
   t.insert(276);
-
-  EXPECT_EQ(*t.closest_left(1), 1);
-  EXPECT_EQ(*t.closest_left(2), 1);
-  EXPECT_EQ(*t.closest_right(5), 10);
-  EXPECT_EQ(*t.closest_right(9), 10);
-  EXPECT_EQ(t.closest_right(276), t.end());
 
   std::set<int> s{};
   std::copy(t.begin(), t.end(), std::inserter(s, s.end()));
