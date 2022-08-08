@@ -156,9 +156,9 @@ int main(int argc, char *argv[]) {
   }
 
   if (measure) {
-    std::cout << "throttle::splay_set took " << my_set_elapsed << " to run\n";
+    std::cout << "throttle::splay_set took " << my_set_elapsed.count() << "ms to run\n";
     if (compare) {
-      std::cout << "std::set took " << set_elapsed << " to run\n";
+      std::cout << "std::set took " << set_elapsed.count() << "ms to run\n";
     }
   }
 #endif
