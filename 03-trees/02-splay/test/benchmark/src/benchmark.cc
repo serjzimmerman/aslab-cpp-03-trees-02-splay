@@ -15,6 +15,7 @@ namespace po = boost::program_options;
 #include "splay_order_set.hpp"
 
 template <typename T> int set_range_query(const std::set<T> &p_set, T p_first, T p_second) {
+  if (p_first > p_second) return 0;
   auto its = p_set.lower_bound(p_first);
   auto ite = p_set.upper_bound(p_second);
   return std::distance(its, ite);
@@ -22,11 +23,7 @@ template <typename T> int set_range_query(const std::set<T> &p_set, T p_first, T
 
 #ifndef LINEAR_COMPLEXITY
 template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set, T p_first, T p_second) {
-  if (p_set.empty()) {
-    return 0;
-  }
-
-  if (p_first > *p_set.max()) {
+  if (p_set.empty() || p_first > p_second || p_first > *p_set.max()) {
     return 0;
   }
 
@@ -40,6 +37,7 @@ template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set
 }
 #else
 template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set, T p_first, T p_second) {
+  if (p_first > p_second) return 0;
   auto its = p_set.lower_bound(p_first);
   auto ite = p_set.upper_bound(p_second);
   return std::distance(its, ite);
@@ -71,7 +69,7 @@ std::pair<std::vector<int>, std::vector<std::pair<int, int>>> read_input() {
   q_vec.reserve(m);
   for (int i = 0; i < m; ++i) {
     int temp1 = 0, temp2 = 0;
-    if ((!(std::cin >> temp1 >> temp2)) || temp1 >= temp2) {
+    if ((!(std::cin >> temp1 >> temp2))) {
       std::abort();
     }
     q_vec.push_back({temp1, temp2});
@@ -105,7 +103,7 @@ int main(int argc, char *argv[]) {
   std::vector<int> my_set_ans{}, set_ans{};
   my_set_ans.reserve(q_vec.size());
   set_ans.reserve(q_vec.size());
-  
+
   auto my_set_start = std::chrono::high_resolution_clock::now();
 
   throttle::splay_order_set<int> t{};
