@@ -244,6 +244,29 @@ TEST(splay_order_test, test_10) {
   EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
 }
 
+TEST(splay_order_test, test_11) {
+  throttle::splay_order_set<int> t{};
+
+  for (int i = 0; i < 65536; i++) {
+    int temp = rand();
+    if (!t.contains(temp)) t.insert(temp);
+  }
+
+  t.erase(*t.max());
+  t.erase(*t.min());
+
+  EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
+
+  throttle::splay_order_set<int> c{t};
+
+  ASSERT_EQ(t.size(), c.size());
+  for (auto const &v : t) {
+    EXPECT_TRUE(c.contains(v));
+  }
+
+  EXPECT_EQ(validate_size_helper(c.m_tree_impl.m_root), true);
+}
+
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
