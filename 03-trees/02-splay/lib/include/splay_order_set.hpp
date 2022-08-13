@@ -84,7 +84,7 @@ public:
   using difference_type = typename iterator::difference_type;
   using const_iterator = iterator;
 
-public: 
+public:
   bool empty() const {
     return m_tree_impl.empty();
   }
@@ -93,7 +93,7 @@ public:
     return m_tree_impl.size();
   }
 
-  bool contains(const key_type &p_key) {
+  bool contains(const key_type &p_key) const {
     return (find(p_key) != end());
   }
 
@@ -126,27 +126,27 @@ public: // Selectors
     return (empty() ? end() : std::prev(end()));
   }
 
-  iterator find(const key_type &p_key) {
+  iterator find(const key_type &p_key) const {
     return iterator{m_tree_impl.find(p_key)};
   }
 
-  iterator lower_bound(const key_type &p_key) {
+  iterator lower_bound(const key_type &p_key) const {
     return iterator{m_tree_impl.lower_bound(p_key)};
   }
 
-  iterator upper_bound(const key_type &p_key) {
+  iterator upper_bound(const key_type &p_key) const {
     return iterator{m_tree_impl.upper_bound(p_key)};
   }
 
-  iterator select_rank(size_type p_rank) {
+  iterator select_rank(size_type p_rank) const {
     return iterator{m_tree_impl.select_rank(p_rank)};
   }
 
-  size_type get_rank_of(const key_type &p_key) {
+  size_type get_rank_of(const key_type &p_key) const {
     return m_tree_impl.get_rank_of(p_key);
   }
 
-  size_type get_rank_of(iterator p_pos) {
+  size_type get_rank_of(iterator p_pos) const {
     return m_tree_impl.get_rank_of(p_pos.m_it_impl);
   }
 

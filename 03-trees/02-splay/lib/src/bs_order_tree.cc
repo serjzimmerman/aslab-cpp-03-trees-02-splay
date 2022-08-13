@@ -8,21 +8,21 @@
  * ----------------------------------------------------------------------------
  */
 
-#include <cassert>
-
 #include "detail/bs_order_tree.hpp"
+#include <cassert>
 
 namespace throttle {
 namespace detail {
 
-template class bs_order_tree<int, std::less<int>>;
-void bs_order_tree_impl::rotate_left(base_ptr p_n) noexcept {
+void bs_order_tree_impl::rotate_left(base_ptr p_n) const noexcept {
   assert(p_n);
   assert(p_n->m_right);
 
   base_ptr root = p_n, rchild = p_n->m_right;
   root->m_right = rchild->m_left;
-  if (rchild->m_left) { rchild->m_left->m_parent = root; }
+  if (rchild->m_left) {
+    rchild->m_left->m_parent = root;
+  }
 
   rchild->m_parent = root->m_parent;
 
@@ -41,13 +41,15 @@ void bs_order_tree_impl::rotate_left(base_ptr p_n) noexcept {
   root->m_size = link_type::size(root->m_left) + link_type::size(root->m_right) + 1;
 }
 
-void bs_order_tree_impl::rotate_right(base_ptr p_n) noexcept {
+void bs_order_tree_impl::rotate_right(base_ptr p_n) const noexcept {
   assert(p_n);
   assert(p_n->m_left);
 
   base_ptr root = p_n, lchild = p_n->m_left;
   root->m_left = lchild->m_right;
-  if (lchild->m_right) { lchild->m_right->m_parent = root; }
+  if (lchild->m_right) {
+    lchild->m_right->m_parent = root;
+  }
 
   lchild->m_parent = root->m_parent;
 
@@ -66,7 +68,7 @@ void bs_order_tree_impl::rotate_right(base_ptr p_n) noexcept {
   root->m_size = link_type::size(root->m_left) + link_type::size(root->m_right) + 1;
 }
 
-void bs_order_tree_impl::rotate_to_parent(base_ptr p_n) noexcept {
+void bs_order_tree_impl::rotate_to_parent(base_ptr p_n) const noexcept {
   if (p_n->is_left_child()) {
     rotate_right(p_n->m_parent);
   } else {

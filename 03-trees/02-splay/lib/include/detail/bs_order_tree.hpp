@@ -137,15 +137,15 @@ protected:
   using size_type = bst_order_node_base::size_type;
 
 protected:
-  base_ptr m_root;
+  mutable base_ptr m_root;
   // Note that rotations don't change min and max values, only erase and insert does, thus pointers don't change as
   // well.
   base_ptr m_leftmost;
   base_ptr m_rightmost;
 
-  void rotate_left(base_ptr) noexcept;
-  void rotate_right(base_ptr) noexcept;
-  void rotate_to_parent(base_ptr) noexcept;
+  void rotate_left(base_ptr) const noexcept;
+  void rotate_right(base_ptr) const noexcept;
+  void rotate_to_parent(base_ptr) const noexcept;
 
   bs_order_tree_impl() : m_root{}, m_leftmost{}, m_rightmost{} {}
 };
@@ -285,7 +285,8 @@ public: // Modifiers
 
 protected:
   // clang-format off
-  template <typename F> std::tuple<node_ptr, node_ptr, bool> traverse_bs(node_ptr p_r, const t_key_type &p_k, F p_f) {
+  template <typename F>
+  std::tuple<node_ptr, node_ptr, bool> traverse_bs(node_ptr p_r, const t_key_type &p_k, F p_f) const {
     if (empty()) {
       return std::make_tuple(nullptr, nullptr, false);
     }
@@ -305,65 +306,6 @@ protected:
     }
 
     return std::make_tuple(curr, prev, is_less_than_key);
-  }
-
-  template <typename F>
-  std::tuple<const_node_ptr, const_node_ptr, bool> traverse_bs(const_node_ptr p_r, const t_key_type &p_k, F p_f) const {
-    if (empty()) {
-      return std::make_tuple(nullptr, nullptr, false);
-    }
-
-    const_node_ptr prev = nullptr, curr = p_r;
-    bool is_less_than_key{};
-
-    while (curr && (curr->m_value != p_k)) {
-      is_less_than_key = t_comp{}(curr->m_value, p_k);
-      p_f(*curr);
-      prev = curr;
-      if (is_less_than_key) {
-        curr = static_cast<node_ptr>(curr->m_right);
-      } else {
-        curr = static_cast<node_ptr>(curr->m_left);
-      }
-    }
-
-    return std::make_tuple(curr, prev, is_less_than_key);
-  }
-
-  template <typename F> void traverse_postorder(base_ptr p_r, F p_f) {
-    base_ptr prev{};
-
-    while (p_r) {
-      base_ptr parent{p_r->m_parent}, left{p_r->m_left}, right{p_r->m_right};
-
-      if (prev == parent) {
-        prev = p_r;
-        if (left) {
-          p_r = left;
-        } else if (right) {
-          p_r = right;
-        } else {
-          p_f(p_r);
-          p_r = parent;
-        }
-      }
-
-      else if (prev == left) {
-        prev = p_r;
-        if (right) {
-          p_r = right;
-        } else {
-          p_f(p_r);
-          p_r = parent;
-        }
-      }
-
-      else {
-        prev = p_r;
-        p_f(p_r);
-        p_r = parent;
-      }
-    }
   }
 
   template <typename F> void traverse_postorder(const_base_ptr p_r, F p_f) const {
@@ -403,12 +345,7 @@ protected:
   }
   // clang-format on
 
-  std::pair<node_ptr, node_ptr> bst_lookup(const t_key_type &p_key) {
-    auto [found, prev, is_prev_less] = traverse_bs(static_cast<node_ptr>(m_root), p_key, [](node_type &) {});
-    return {found, prev};
-  }
-
-  std::pair<const_node_ptr, const_node_ptr> bst_lookup(const t_key_type &p_key) const {
+  std::pair<node_ptr, node_ptr> bst_lookup(const t_key_type &p_key) const {
     auto [found, prev, is_prev_less] = traverse_bs(static_cast<node_ptr>(m_root), p_key, [](const node_type &) {});
     return {found, prev};
   }

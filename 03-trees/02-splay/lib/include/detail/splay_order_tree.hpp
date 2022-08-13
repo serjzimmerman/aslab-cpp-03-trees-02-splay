@@ -31,13 +31,13 @@ public:
   using typename base_tree::size_type;
 
 protected:
-  void splay_to_root(base_ptr p_node) {
+  void splay_to_root(base_ptr p_node) const {
     while (p_node->m_parent) {
 
       if (!p_node->m_parent->m_parent) { // Case 1. Zig
         this->rotate_to_parent(p_node);
-      } 
-      
+      }
+
       else if (p_node->is_linear()) { // Case 2. Zig-zig
         this->rotate_to_parent(p_node->m_parent);
         this->rotate_to_parent(p_node);
@@ -98,7 +98,7 @@ protected:
     delete static_cast<node_ptr>(to_erase);
   }
 
-  size_type get_rank_of(base_ptr p_node) {
+  size_type get_rank_of(base_ptr p_node) const {
     base_ptr node = p_node;
     assert(node);
 
@@ -132,7 +132,7 @@ public:
     erase(p_pos.m_curr);
   }
 
-  size_type get_rank_of(const t_key_type &p_elem) {
+  size_type get_rank_of(const t_key_type &p_elem) const {
     base_ptr node, prev;
     std::tie(node, prev) = this->bst_lookup(p_elem);
     if (!node) {
@@ -143,11 +143,11 @@ public:
     return get_rank_of(node);
   }
 
-  size_type get_rank_of(iterator p_pos) {
+  size_type get_rank_of(iterator p_pos) const {
     return get_rank_of(p_pos.m_curr);
   }
 
-  iterator select_rank(size_type p_rank) {
+  iterator select_rank(size_type p_rank) const {
     if (p_rank > this->size() || !(p_rank > 0)) return this->end();
 
     base_ptr curr = this->m_root;
@@ -166,7 +166,7 @@ public:
     return iterator{curr, this};
   }
 
-  iterator lower_bound(const t_key_type &p_key) {
+  iterator lower_bound(const t_key_type &p_key) const {
     base_ptr curr = this->m_root, prev = nullptr, bound = nullptr;
 
     while (curr) {
@@ -189,7 +189,7 @@ public:
     return iterator{bound, this};
   }
 
-  iterator upper_bound(const t_key_type &p_key) {
+  iterator upper_bound(const t_key_type &p_key) const {
     base_ptr curr = this->m_root, prev = nullptr, bound = nullptr;
 
     while (curr) {
@@ -212,7 +212,7 @@ public:
     return iterator{bound, this};
   }
 
-  iterator find(const t_key_type &p_key) {
+  iterator find(const t_key_type &p_key) const {
     auto [found, prev] = this->bst_lookup(p_key);
     if (!found) {
       if (prev) splay_to_root(prev);
