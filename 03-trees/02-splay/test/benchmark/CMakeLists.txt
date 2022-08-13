@@ -12,14 +12,20 @@ endif()
 if(LINEAR)
   target_compile_definitions(benchmark PRIVATE -DLINEAR_COMPLEXITY)
 endif()
-install(TARGETS benchmark DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 set(ANSGEN_SOURCES
   src/ansgen.cc
 )
 
+set(TINY_SOURCES
+  src/tinybenchmark.cc
+)
+
+add_executable(tinybenchmark ${TINY_SOURCES})
+target_link_libraries(tinybenchmark throttle)
+
 add_executable(ansgen ${ANSGEN_SOURCES})
-install(TARGETS ansgen DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+install(TARGETS ansgen benchmark tinybenchmark DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 if (BASH_PROGRAM)
   add_custom_target(generate_ans)
