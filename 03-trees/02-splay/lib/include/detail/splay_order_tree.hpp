@@ -24,7 +24,7 @@ class splay_order_tree : public bs_order_tree<t_value_type, t_comp, t_key_type> 
   using typename base_tree::const_node_ptr;
   using typename base_tree::link_type;
   using typename base_tree::node_ptr;
-  using self = splay_order_tree<t_value_type, t_comp, t_key_type>;
+  using self = splay_order_tree;
 
 public:
   using typename base_tree::iterator;

@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 
@@ -157,7 +158,7 @@ protected:
   using node_ptr = typename node_type::node_ptr;
   using const_node_ptr = typename node_type::const_node_ptr;
   using size_type = typename node_type::size_type;
-  using self = bs_order_tree<t_value_type, t_comp>;
+  using self = bs_order_tree;
 
 public:
   struct iterator {
@@ -351,11 +352,11 @@ protected:
   }
 
   std::pair<node_ptr, node_ptr> bst_insert(const t_value_type &p_key) {
-    node_ptr to_insert = new node_type{p_key};
+    std::unique_ptr<node_type> to_insert = std::make_unique<node_type>(p_key);
 
     if (empty()) {
-      m_root = m_leftmost = m_rightmost = to_insert;
-      return {to_insert, nullptr};
+      m_root = m_leftmost = m_rightmost = to_insert.get();
+      return {to_insert.release(), nullptr};
     }
 
     auto [found, prev, is_prev_less] =
@@ -363,24 +364,23 @@ protected:
 
     if (found) {
       traverse_bs(static_cast<node_ptr>(m_root), p_key, [](node_type &p_node) { p_node.m_size--; });
-      delete to_insert;
       return {nullptr, prev}; // Double insert
     }
 
     to_insert->m_parent = prev;
     if (is_prev_less) {
-      prev->m_right = to_insert;
+      prev->m_right = to_insert.get();
     } else {
-      prev->m_left = to_insert;
+      prev->m_left = to_insert.get();
     }
 
     if (t_comp{}(p_key, static_cast<node_ptr>(m_leftmost)->m_value)) {
-      m_leftmost = to_insert;
+      m_leftmost = to_insert.get();
     } else if (t_comp{}(static_cast<node_ptr>(m_rightmost)->m_value, p_key)) {
-      m_rightmost = to_insert;
+      m_rightmost = to_insert.get();
     }
 
-    return {to_insert, prev};
+    return {to_insert.release(), prev};
   }
 
   // Constructors
