@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <functional>
 #include <gtest/gtest.h>
+#include <iterator>
 #include <numeric>
 #include <set>
 #include <string>
@@ -259,6 +260,20 @@ TEST(splay_order_test, test_11) {
 
   throttle::splay_order_set<int> c{t};
 
+  ASSERT_EQ(t.size(), c.size());
+  for (auto const &v : t) {
+    EXPECT_TRUE(c.contains(v));
+  }
+
+  auto vs = t.min();
+  std::advance(vs, 1024);
+  t.erase(vs, t.end());
+
+  EXPECT_EQ(t.size(), 1024);
+  EXPECT_EQ(validate_size_helper(t.m_tree_impl.m_root), true);
+  EXPECT_EQ(validate_size_helper(c.m_tree_impl.m_root), true);
+
+  c = t;
   ASSERT_EQ(t.size(), c.size());
   for (auto const &v : t) {
     EXPECT_TRUE(c.contains(v));
