@@ -128,9 +128,7 @@ public:
     erase(to_erase);
   }
 
-  void erase(iterator p_pos) {
-    erase(p_pos.m_curr);
-  }
+  void erase(iterator p_pos) { erase(p_pos.m_curr); }
 
   size_type get_rank_of(const t_key_type &p_elem) const {
     base_ptr node, prev;
@@ -143,14 +141,12 @@ public:
     return get_rank_of(node);
   }
 
-  size_type get_rank_of(iterator p_pos) const {
-    return get_rank_of(p_pos.m_curr);
-  }
+  size_type get_rank_of(iterator p_pos) const { return get_rank_of(p_pos.m_curr); }
 
   iterator select_rank(size_type p_rank) const {
     if (p_rank > this->size() || !(p_rank > 0)) return this->end();
 
-    base_ptr curr = this->m_root;
+    base_ptr  curr = this->m_root;
     size_type r = link_type::size(curr->m_left) + 1;
     while (r != p_rank) {
       if (p_rank < r) {

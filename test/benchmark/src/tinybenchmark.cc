@@ -61,8 +61,8 @@ template <typename T> int my_set_range_query(throttle::splay_order_set<T> &p_set
   }
   auto its = p_set.lower_bound(p_first);
   auto ite = p_set.upper_bound(p_second);
-  int rank_left = (its == p_set.end() ? 0 : p_set.get_rank_of(its));
-  int rank_right = (ite == p_set.end() ? p_set.size() + 1 : p_set.get_rank_of(ite));
+  int  rank_left = (its == p_set.end() ? 0 : p_set.get_rank_of(its));
+  int  rank_right = (ite == p_set.end() ? p_set.size() + 1 : p_set.get_rank_of(ite));
   return rank_right - rank_left;
 }
 

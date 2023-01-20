@@ -187,7 +187,7 @@ TEST(splay_order_test, test_8) {
 
 TEST(splay_order_test, test_9) {
   throttle::splay_order_set<int> t{};
-  std::set<int> s{};
+  std::set<int>                  s{};
 
   for (int i = 0; i < 262144; i += 2) {
     t.insert(i);

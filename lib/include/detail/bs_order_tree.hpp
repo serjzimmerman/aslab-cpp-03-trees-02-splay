@@ -27,13 +27,11 @@ struct bst_order_node_base {
   using size_type = std::size_t;
 
   size_type m_size;
-  base_ptr m_left;
-  base_ptr m_right;
-  base_ptr m_parent;
+  base_ptr  m_left;
+  base_ptr  m_right;
+  base_ptr  m_parent;
 
-  static size_type size(base_ptr p_x) noexcept {
-    return (p_x ? p_x->m_size : 0);
-  }
+  static size_type size(base_ptr p_x) noexcept { return (p_x ? p_x->m_size : 0); }
 
   base_ptr minimum() noexcept {
     base_ptr curr = this;
@@ -97,21 +95,15 @@ struct bst_order_node_base {
     return curr;
   }
 
-  base_ptr get_sibling() noexcept {
-    return (is_left_child() ? m_parent->m_right : m_parent->m_left);
-  }
+  base_ptr get_sibling() noexcept { return (is_left_child() ? m_parent->m_right : m_parent->m_left); }
 
   base_ptr get_uncle() noexcept {
     return (m_parent->is_right_child() ? m_parent->m_parent->m_left : m_parent->m_parent->m_right);
   }
 
-  bool is_left_child() const noexcept {
-    return (this == m_parent->m_left);
-  }
+  bool is_left_child() const noexcept { return (this == m_parent->m_left); }
 
-  bool is_right_child() const noexcept {
-    return (this == m_parent->m_right);
-  }
+  bool is_right_child() const noexcept { return (this == m_parent->m_right); }
 
   bool is_linear() const noexcept {
     return ((is_left_child() && m_parent->is_left_child()) || (is_right_child() && m_parent->is_right_child()));
@@ -163,7 +155,7 @@ protected:
 public:
   struct iterator {
     const self *m_tree;
-    base_ptr m_curr;
+    base_ptr    m_curr;
 
     using iterator_category = std::bidirectional_iterator_tag;
     using difference_type = ptrdiff_t;
@@ -174,17 +166,11 @@ public:
     iterator() : m_tree{}, m_curr{} {}
     iterator(base_ptr p_node, const self *p_tree) : m_tree{p_tree}, m_curr{p_node} {}
 
-    pointer get() {
-      return &(static_cast<node_ptr>(m_curr)->m_value);
-    }
+    pointer get() { return &(static_cast<node_ptr>(m_curr)->m_value); }
 
-    reference operator*() const {
-      return static_cast<node_ptr>(m_curr)->m_value;
-    }
+    reference operator*() const { return static_cast<node_ptr>(m_curr)->m_value; }
 
-    pointer operator->() {
-      return get();
-    }
+    pointer operator->() { return get(); }
 
     iterator &operator++() {
       m_curr = m_curr->inorder_successor();
@@ -208,31 +194,19 @@ public:
       return temp;
     }
 
-    bool operator==(const iterator &p_rhs) const {
-      return (m_curr == p_rhs.m_curr);
-    }
+    bool operator==(const iterator &p_rhs) const { return (m_curr == p_rhs.m_curr); }
 
-    bool operator!=(const iterator &p_rhs) const {
-      return (m_curr != p_rhs.m_curr);
-    }
+    bool operator!=(const iterator &p_rhs) const { return (m_curr != p_rhs.m_curr); }
   };
 
   // Helper selectors
-  iterator begin() const noexcept {
-    return iterator{m_leftmost, this};
-  }
+  iterator begin() const noexcept { return iterator{m_leftmost, this}; }
 
-  iterator end() const noexcept {
-    return iterator{nullptr, this};
-  }
+  iterator end() const noexcept { return iterator{nullptr, this}; }
 
-  bool empty() const noexcept {
-    return !m_root;
-  }
+  bool empty() const noexcept { return !m_root; }
 
-  size_type size() const noexcept {
-    return (m_root ? m_root->m_size : 0);
-  }
+  size_type size() const noexcept { return (m_root ? m_root->m_size : 0); }
 
 public: // Modifiers
   void clear() {
@@ -261,21 +235,21 @@ public: // Modifiers
   void dump(std::ostream &p_ostream) const {
     struct dumper {
       size_type m_curr_index = 0;
-      void dump_helper(base_ptr p_root, std::ostream &p_ostream) {
-        size_type curr_index = m_curr_index;
+      void      dump_helper(base_ptr p_root, std::ostream &p_ostream) {
+             size_type curr_index = m_curr_index;
 
-        if (!p_root) {
-          p_ostream << "\tnode_" << m_curr_index++ << " [label = \"NIL:0\"];\n";
-          return;
+             if (!p_root) {
+               p_ostream << "\tnode_" << m_curr_index++ << " [label = \"NIL:0\"];\n";
+               return;
         }
 
-        p_ostream << "\tnode_" << m_curr_index++ << " [label = \"" << static_cast<node_ptr>(p_root)->m_value << ":"
-                  << p_root->m_size << "\"];\n";
-        p_ostream << "\tnode_" << curr_index << " -> node_" << curr_index + 1 << ";\n";
-        dump_helper(p_root->m_left, p_ostream);
+             p_ostream << "\tnode_" << m_curr_index++ << " [label = \"" << static_cast<node_ptr>(p_root)->m_value << ":"
+                       << p_root->m_size << "\"];\n";
+             p_ostream << "\tnode_" << curr_index << " -> node_" << curr_index + 1 << ";\n";
+             dump_helper(p_root->m_left, p_ostream);
 
-        p_ostream << "\tnode_" << curr_index << " -> node_" << m_curr_index << ";\n";
-        dump_helper(p_root->m_right, p_ostream);
+             p_ostream << "\tnode_" << curr_index << " -> node_" << m_curr_index << ";\n";
+             dump_helper(p_root->m_right, p_ostream);
       }
     };
 
@@ -386,9 +360,7 @@ protected:
   // Constructors
   bs_order_tree() : bs_order_tree_impl{} {}
 
-  ~bs_order_tree() {
-    clear();
-  }
+  ~bs_order_tree() { clear(); }
 
   // Copy constructor and assigment should be defined in a derived class.
   bs_order_tree(const self &p_other) = delete;
